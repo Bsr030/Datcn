@@ -1,3 +1,4 @@
+#LeakyBucket
 class LeakyBucket:
     def _init_(self, capacity, rate):
         self.capacity = capacity  # Maximum bucket size
