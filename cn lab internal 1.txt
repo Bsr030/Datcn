@@ -1,0 +1,438 @@
+bit stuffing:
+
+#include<stdio.h>
+#include<string.h>
+int main()
+{
+    int a[20],b[30],i,j,k,count,n;
+    printf("Enter frame size (Example: 8):");
+    scanf("%d",&n);
+    printf("Enter the frame in the form of 0 and 1 :");
+    for(i=0; i<n; i++)
+        scanf("%d",&a[i]);
+    i=0;
+    count=1;
+    j=0;
+    while(i<n)
+    {
+        if(a[i]==1)
+        {
+            b[j]=a[i];
+            for(k=i+1; a[k]==1 && k<n && count<5; k++)
+            {
+                j++;
+                b[j]=a[k];
+                count++;
+                if(count==5)
+                {
+                    j++;
+                    b[j]=0;
+                }
+                i=k;
+            }
+        }
+        else
+        {
+            b[j]=a[i];
+        }
+        i++;
+        j++;
+    }
+    printf("After Bit Stuffing :");
+    for(i=0; i<j; i++)
+        printf("%d",b[i]);
+    return 0;
+}
+
+byte stuffing:
+
+#include <stdio.h>
+#include <string.h>
+void main()
+{
+    char frame[50][50], str[50][50];
+    char flag[10];
+    strcpy(flag, "flag");
+    char esc[10];
+    strcpy(esc, "esc");
+    int i, j, k = 0, n;
+    strcpy(frame[k++], "flag");
+    printf("Enter length of String : \n");
+    scanf("%d", &n);
+    printf("Enter the String: ");
+    for (i = 0; i <= n; i++)
+    {
+        gets(str[i]);
+    }
+    printf("\nYou entered :\n");
+    for (i = 0; i <= n; i++)
+    {
+        puts(str[i]);
+    }
+    printf("\n");
+    for (i = 1; i <= n; i++)
+    {
+        if (strcmp(str[i], flag) != 0 && strcmp(str[i], esc) != 0)
+        {
+            strcpy(frame[k++], str[i]);
+        }
+        else
+        {
+            strcpy(frame[k++], "esc");
+            strcpy(frame[k++], str[i]);
+        }
+    }
+    strcpy(frame[k++], "flag");
+    printf("------------------------------\n\n");
+    printf("Byte stuffing at sender side:\n\n");
+    printf("------------------------------\n\n");
+    for (i = 0; i < k; i++)
+    {
+        printf("%s\t", frame[i]);
+    }
+}
+
+
+CRC:
+
+// Include headers
+#include<stdio.h>
+#include<string.h>
+// length of the generator polynomial
+#define N strlen(gen_poly)
+// data to be transmitted and received
+char data[28];
+// CRC value
+char check_value[28];
+// generator polynomial
+char gen_poly[10];
+// variables 
+int data_length,i,j;
+// function that performs XOR operation
+void XOR(){
+    // if both bits are the same, the output is 0
+    // if the bits are different the output is 1
+    for(j = 1;j < N; j++)
+    check_value[j] = (( check_value[j] == gen_poly[j])?'0':'1');
+    
+}
+// Function to check for errors on the receiver side
+void receiver(){
+// get the received data
+    printf("Enter the received data: ");
+    scanf("%s", data);
+    printf("\n-----------------------------\n");
+    printf("Data received: %s", data);
+// Cyclic Redundancy Check
+    crc();
+// Check if the remainder is zero to find the error
+    for(i=0;(i<N-1) && (check_value[i]!='1');i++);
+        if(i<N-1)
+            printf("\nError detected\n\n");
+        else
+            printf("\nNo error detected\n\n");
+}
+
+void crc(){
+    // initializing check_value
+    for(i=0;i<N;i++)
+        check_value[i]=data[i];
+    do{
+    // check if the first bit is 1 and calls XOR function
+        if(check_value[0]=='1')
+            XOR();
+// Move the bits by 1 position for the next computation
+        for(j=0;j<N-1;j++)
+            check_value[j]=check_value[j+1];
+        // appending a bit from data
+        check_value[j]=data[i++];
+    }while(i<=data_length+N-1);
+// loop until the data ends
+}
+
+int main()
+{
+    // get the data to be transmitted
+    printf("\nEnter data to be transmitted: ");
+    scanf("%s",data);
+    printf("\n Enter the Generating polynomial: ");
+    // get the generator polynomial
+    scanf("%s",gen_poly);
+    // find the length of data
+    data_length=strlen(data);
+    // appending n-1 zeros to the data
+    for(i=data_length;i<data_length+N-1;i++)
+        data[i]='0';
+    printf("\n----------------------------------------");
+// print the data with padded zeros
+    printf("\n Data padded with n-1 zeros : %s",data);
+    printf("\n----------------------------------------");
+// Cyclic Redundancy Check
+    crc();
+// print the computed check value
+    printf("\nCRC or Check value is : %s",check_value);
+// Append data with check_value(CRC)  
+    for(i=data_length;i<data_length+N-1;i++)
+        data[i]=check_value[i-data_length];
+    printf("\n----------------------------------------");
+// printing the final data to be sent
+    printf("\n Final data to be sent : %s",data);
+    printf("\n----------------------------------------\n");
+// Calling the receiver function to check errors
+    receiver();
+        return 0;
+}
+
+SLiding window protocol:
+
+#include<stdio.h>
+ 
+int main()
+{
+    int w,i,f,frames[50];
+ 
+    printf("Enter window size: ");
+    scanf("%d",&w);
+ 
+    printf("\nEnter number of frames to transmit: ");
+    scanf("%d",&f);
+ 
+    printf("\nEnter %d frames: ",f);
+ 
+    for(i=1;i<=f;i++)
+        scanf("%d",&frames[i]);
+ 
+    printf("\nWith sliding window protocol the frames will be sent in the following manner (assuming no corruption of frames)\n\n");
+    printf("After sending %d frames at each stage sender waits for acknowledgement sent by the receiver\n\n",w);
+ 
+    for(i=1;i<=f;i++)
+    {
+        if(i%w==0)
+        {
+            printf("%d\n",frames[i]);
+            printf("Acknowledgement of above frames sent is received by sender\n\n");
+        }
+        else
+            printf("%d ",frames[i]);
+    }
+ 
+    if(f%w!=0)
+        printf("\nAcknowledgement of above frames sent is received by sender\n");
+ 
+    return 0;
+}
+Output
+
+Socket programming:
+
+// provides required data types
+#include <sys/types.h>
+// holds address family and socket functions
+#include <sys/socket.h>
+// has the sockaddr_in structure
+#include <netinet/in.h>
+// has functions for read and write operations
+#include <fcntl.h>
+// basic C header
+#include <stdio.h>
+// header to help with strings
+#include <string.h>
+// has macros such as EXIT_FAILURE
+#include<stdlib.h>
+// port through which connection is to be made
+#define CONNECTION_PORT 3500
+
+int main()
+{
+// server socket 
+    int socket_descriptor;
+// socket created by the bind function
+    int client_socket;
+// buffer to store message
+    char storage_buffer[80];
+    int length_of_address;
+// option value for respective option_name
+    int option_value=1;
+// server and client address structures
+    struct sockaddr_in server_address;
+    struct sockaddr_in connection_address;
+    char* message = "This is a message from the server";
+// creating the socket with IPv4 domain and TCP protocol
+    socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+// Check if the socket is created successfully
+    if(socket_descriptor<0)
+   {
+        perror("Socket creation failed");
+// EXIT_FAILURE is a macro used to indicate unsuccessful execution of the program
+        exit(EXIT_FAILURE);
+   }     
+// set options for the socket
+    int status=setsockopt(socket_descriptor, SOL_SOCKET,SO_REUSEADDR , &option_value,sizeof(option_value));
+// check if options are set successfully
+    if(status<0){
+        perror("Couldn't set options");
+        exit(EXIT_FAILURE);
+    }
+//  initializing structure elements for address
+    server_address.sin_family = AF_INET;
+// convert port to network byte order using htons
+    server_address.sin_port = htons(CONNECTION_PORT);
+// any address available
+    server_address.sin_addr.s_addr = INADDR_ANY;
+// Assigning null character to the last index of the character array
+    server_address.sin_zero[8]='\0';
+// bind the socket with the values address and port from the sockaddr_in structure
+    status=bind(socket_descriptor, (struct sockaddr*)&server_address, sizeof(struct sockaddr));
+// check if the binding was successful
+    if(status<0){
+        perror("Couldn't bind socket");
+        exit(EXIT_FAILURE);
+    }
+// listen on specified port with a maximum of 4 requests
+    status=listen(socket_descriptor,4);
+// check if the socket is listening successfully
+    if(status<0){
+        perror("Couldn't listen for connections");
+        exit(EXIT_FAILURE);
+    }
+    length_of_address = sizeof(connection_address);
+// accept connection signals from the client
+    client_socket = accept(socket_descriptor, (struct sockaddr*)&connection_address, &length_of_address);
+// check if the server is accepting the signals from the client
+    if(client_socket<0){
+        perror("Couldn't establish connection with client");
+        exit(EXIT_FAILURE);
+    }
+// Receive data sent by the client
+    read(client_socket, storage_buffer, 80);
+// set the last index of the character array as a null character
+    storage_buffer[bytes_read] = '\0';
+    printf("Message from client: %s \n",storage_buffer);
+// Send data to the client
+    send(client_socket, message, strlen(message), 0);
+// Close all the sockets created 
+    close(socket_descriptor);
+    close(client_socket);
+    return 0;
+}
+
+Leaky Bucket:
+
+//here is a simple implementation of leaky bucket.
+#include&lt;stdio.h&gt;
+#include&lt;stdlib.h&gt;
+#include&lt;dos.h&gt;
+void main()
+{
+int
+i,packets[10],content=0,newcontent,time,clk,bcktsize,oprate;
+for(i=0;i&lt;5;i++)
+{
+packets[i]=rand()%10;
+if(packets[i]==0) --i;
+}
+printf("\n Enter output rate of the bucket: \n");
+scanf("%d",&amp;oprate);
+printf("\n Enter Bucketsize\n");
+scanf("%d",&amp;bcktsize);
+for(i=0;i&lt;5;++i)
+{
+if((packets[i]+content)&gt;bcktsize)
+{
+if(packets[i]&gt;bcktsize)
+printf("\n Incoming packet size %d greater than the size of the
+bucket\n",packets[i]);
+else
+printf("\n bucket size exceeded\n");
+}
+else
+{
+newcontent=packets[i];
+content+=newcontent;
+printf("\n Incoming Packet : %d\n",newcontent);
+printf("\n Transmission left : %d\n",content);
+time=rand()%10;
+printf("\n Next packet will come at %d\n",time);
+for(clk=0;clk&lt;time &amp;&amp; content&gt;0;++clk)
+{
+printf("\n Left time %d",(time-clk));
+sleep(1);
+if(content)
+{
+printf("\n Transmitted\n");
+if(content&lt;oprate)
+content=0;
+else
+content=content-oprate;
+printf("\n Bytes remaining : %d\n",content);
+}
+else
+printf("\n No packets to send\n");
+}
+}
+}
+}
+
+Token bucket:
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
+
+#define MAX_TOKENS 10 // Maximum tokens in the bucket
+#define TOKEN_RATE 1 // Tokens added per second
+
+struct TokenBucket {
+    int tokens;
+    time_t last_refill;
+};
+
+void initTokenBucket(struct TokenBucket *bucket) {
+    bucket->tokens = 0;
+    bucket->last_refill = time(NULL);
+}
+
+void refillTokens(struct TokenBucket *bucket) {
+    time_t now = time(NULL);
+    double elapsed_time = difftime(now, bucket->last_refill);
+    int tokens_to_add = (int)(elapsed_time * TOKEN_RATE);
+
+    if (tokens_to_add > 0) {
+        bucket->tokens = (bucket->tokens + tokens_to_add > MAX_TOKENS) ? MAX_TOKENS : bucket->tokens + tokens_to_add;
+        bucket->last_refill = now;
+    }
+}
+
+int getToken(struct TokenBucket *bucket) {
+    refillTokens(bucket);
+
+    if (bucket->tokens > 0) {
+        bucket->tokens--;
+        return 1; // Token granted
+    }
+
+    return 0; // No token available
+}
+
+int main() {
+    struct TokenBucket bucket;
+    initTokenBucket(&bucket);
+
+    int packets_to_send = 20;
+    int i;
+
+    for (i = 0; i < packets_to_send; i++) {
+        usleep(500000); // Simulating packet arrival every 0.5 seconds
+
+        if (getToken(&bucket)) {
+            printf("Packet %d sent. Tokens remaining: %d\n", i + 1, bucket.tokens);
+        } else {
+            printf("Packet %d dropped. No tokens available.\n", i + 1);
+        }
+    }
+
+    return 0;
+}
+
+

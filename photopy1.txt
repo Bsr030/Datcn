@@ -1,0 +1,237 @@
+class LeakyBucket:
+    def _init_(self, capacity, rate):
+        self.capacity = capacity  # Maximum bucket size
+        self.rate = rate  # Leak rate (amount leaked per time interval)
+        self.bucket_size = 0  # Current bucket size
+
+    def leak(self):
+        self.bucket_size = max(0, self.bucket_size - self.rate)
+
+    def add_water(self, amount):
+        self.leak()  # Perform leak before adding water
+        if (self.bucket_size + amount) <= self.capacity:
+            self.bucket_size += amount
+            return True  # Water added successfully
+        else:
+            return False  # Bucket overflow
+
+# Example usage of the leaky bucket
+leaky_bucket = LeakyBucket(capacity=10, rate=2)
+
+for _ in range(15):
+    if leaky_bucket.add_water(1):
+        print("1 unit of water added. Bucket size:", leaky_bucket.bucket_size)
+    else:
+        print("Bucket overflow. 1 unit of water discarded. Bucket size:", leaky_bucket.bucket_size)
+
+
+
+
+
+class TokenBucket:
+    def _init_(self, capacity, rate):
+        self.capacity = capacity  # Maximum bucket size (maximum number of tokens)
+        self.rate = rate  # Token generation rate (tokens added per time interval)
+        self.tokens = 0  # Current number of tokens in the bucket
+
+    def generate_tokens(self):
+        self.tokens = min(self.capacity, self.tokens + self.rate)
+
+    def send_data(self, amount):
+        if amount <= self.tokens:
+            self.tokens -= amount
+            return True  # Data sent successfully
+        else:
+            return False  # Insufficient tokens
+
+# Example usage of the token bucket
+token_bucket = TokenBucket(capacity=10, rate=2)
+
+for _ in range(15):
+    token_bucket.generate_tokens()  # Generate tokens before sending data
+    if token_bucket.send_data(1):
+        print("1 unit of data sent. Tokens remaining:", token_bucket.tokens)
+    else:
+        print("Insufficient tokens. 1 unit of data not sent. Tokens remaining:", token_bucket.tokens)
+
+
+
+
+
+
+import socket
+
+def start_server():
+    # Create a socket object
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Bind the socket to a specific address and port
+    server_address = ('localhost', 12345)
+    server_socket.bind(server_address)
+
+    # Listen for incoming connections (max 5 clients in the queue)
+    server_socket.listen(5)
+    print("Server is listening on {}:{}".format(*server_address))
+
+    while True:
+        # Wait for a connection
+        print("Waiting for a connection...")
+        client_socket, client_address = server_socket.accept()
+        print("Accepted connection from {}:{}".format(*client_address))
+
+        # Send a message to the client
+        message = "Hello, client! Thanks for connecting."
+        client_socket.sendall(message.encode('utf-8'))
+
+        # Close the connection
+        client_socket.close()
+
+if _name_ == "_main_":
+    start_server()
+
+
+
+def byte_stuffing(data):
+    stuffed_data = b''
+    flag = b'\x7e'  # Flag byte, chosen arbitrarily
+
+    # Start with the flag byte
+    stuffed_data += flag
+
+    for byte in data:
+        if byte == flag[0]:
+            # If the byte is the same as the flag, add an escape sequence
+            stuffed_data += b'\x7d\x5e'
+        else:
+            stuffed_data += bytes([byte])
+
+    # End with the flag byte
+    stuffed_data += flag
+
+    return stuffed_data
+
+def byte_destuffing(stuffed_data):
+    destuffed_data = b''
+    flag = b'\x7e'  # Flag byte, chosen arbitrarily
+    escape = b'\x7d'  # Escape byte, chosen arbitrarily
+
+    # Remove the leading and trailing flag bytes
+    stuffed_data = stuffed_data[1:-1]
+
+    i = 0
+    while i < len(stuffed_data):
+        if stuffed_data[i:i + 2] == escape + b'\x5e':
+            # If the escape sequence is found, replace it with the original flag byte
+            destuffed_data += flag
+            i += 2
+        else:
+            destuffed_data += stuffed_data[i:i + 1]
+            i += 1
+
+    return destuffed_data
+
+# Example usage
+original_data = b'Hello~World'
+stuffed_data = byte_stuffing(original_data)
+destuffed_data = byte_destuffing(stuffed_data)
+
+print(f'Original Data: {original_data}')
+print(f'Stuffed Data: {stuffed_data}')
+print(f'Destuffed Data: {destuffed_data}')
+
+
+
+def bit_stuffing(data):
+    stuffed_data = "01111110"  # Start delimiter
+
+    count = 0
+    for bit in data:
+        stuffed_data += bit
+        if bit == '1':
+            count += 1
+        else:
+            count = 0
+
+        if count == 5:
+            # Stuff a '0' bit after five consecutive '1' bits
+            stuffed_data += '0'
+            count = 0
+
+    stuffed_data += "01111110"  # End delimiter
+
+    return stuffed_data
+
+def bit_destuffing(stuffed_data):
+    destuffed_data = ""
+
+    # Remove start and end delimiters
+    stuffed_data = stuffed_data[8:-8]
+
+    count = 0
+    for bit in stuffed_data:
+        destuffed_data += bit
+        if bit == '1':
+            count += 1
+        else:
+            count = 0
+
+        if count == 5:
+            # Skip the next '0' bit after five consecutive '1' bits
+            count = 0
+
+    return destuffed_data
+
+# Example usage
+original_data = "01111111111111111011111110"  # Example data with consecutive '1' bits
+stuffed_data = bit_stuffing(original_data)
+destuffed_data = bit_destuffing(stuffed_data)
+
+print(f'Original Data: {original_data}')
+print(f'Stuffed Data: {stuffed_data}')
+print(f'Destuffed Data: {destuffed_data}')
+
+
+
+Sliding window:
+
+
+#include<stdio.h> 
+ 
+int main() 
+{ 
+    int w,i,f,frames[50]; 
+ 
+printf("Enter window size: "); 
+scanf("%d",&w); 
+ 
+printf("\nEnter number of frames to transmit: "); 
+scanf("%d",&f); 
+ 
+printf("\nEnter %d frames: ",f); 
+ 
+    for(i=1;i<=f;i++) 
+scanf("%d",&frames[i]); 
+ 
+printf("\nWith sliding window protocol the frames will be sent in the following manner (assuming no corruption of frames)\n\n"); 
+printf("After sending %d frames at each stage sender waits for acknowledgement sent by the receiver\n\n",w); 
+ 
+    for(i=1;i<=f;i++) 
+    { 
+        if(i%w==0) 
+        { 
+printf("%d\n",frames[i]); 
+printf("Acknowledgement of above frames sent is received by sender\n\n"); 
+        } 
+        else 
+printf("%d ",frames[i]); 
+    } 
+ 
+    if(f%w!=0) 
+printf("\nAcknowledgement of above frames sent is received by sender\n"); 
+ 
+    return 0; 
+} 
+
+
+
+
