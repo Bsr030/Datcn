@@ -1,0 +1,193 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <arpa/inet.h>
+
+#define PORT 12345
+
+// Function to calculate factorial
+int factorial(int n) {
+    if (n == 0 || n == 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+int main() {
+    int server_socket, client_socket;
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t addr_len = sizeof(client_addr);
+
+    // Create socket
+    server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_socket == -1) {
+        perror("Error creating socket");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set up server address struct
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(PORT);
+
+    // Bind the socket to the address and port
+    if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
+        perror("Error binding");
+        close(server_socket);
+        exit(EXIT_FAILURE);
+    }
+
+    // Listen for incoming connections
+    if (listen(server_socket, 5) == -1) {
+        perror("Error listening");
+        close(server_socket);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Server listening on port %d...\n", PORT);
+
+    while (1) {
+        // Accept a connection from the client
+        client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &addr_len);
+        if (client_socket == -1) {
+            perror("Error accepting connection");
+            close(server_socket);
+            exit(EXIT_FAILURE);
+        }
+
+        printf("Client connected\n");
+
+        // Receive the number from the client
+        int number;
+        recv(client_socket, &number, sizeof(number), 0);
+
+        // Calculate factorial
+        int result = factorial(number);
+
+        // Send the result back to the client
+        send(client_socket, &result, sizeof(result), 0);
+
+        printf("Factorial sent to the client: %d\n", result);
+
+        // Close the connection with the client
+        close(client_socket);
+    }
+
+    // Close the server socket
+    close(server_socket);
+
+    return 0;
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <arpa/inet.h>
+
+#define PORT 12345
+
+int main() {
+    int client_socket;
+    struct sockaddr_in server_addr;
+
+    // Create socket
+    client_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (client_socket == -1) {
+        perror("Error creating socket");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set up server address struct
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server_addr.sin_port = htons(PORT);
+
+    // Connect to the server
+    if (connect(client_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
+        perror("Error connecting to server");
+        close(client_socket);
+        exit(EXIT_FAILURE);
+    }
+
+    // Get input from the user
+    int number;
+    printf("Enter a number to calculate factorial: ");
+    scanf("%d", &number);
+
+    // Send the number to the server
+    send(client_socket, &number, sizeof(number), 0);
+
+    // Receive the result from the server
+    int result;
+    recv(client_socket, &result, sizeof(result), 0);
+
+    printf("Factorial of %d is: %d\n", number, result);
+
+    // Close the client socket
+    close(client_socket);
+
+    return 0;
+}
+import socket
+import struct
+
+def factorial(n):
+    if n == 0 or n == 1:
+        return 1
+    else:
+        return n * factorial(n - 1)
+
+def main():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(('127.0.0.1', 12345))
+    server_socket.listen(5)
+
+    print("Server listening on port 12345...")
+
+    while True:
+        client_socket, addr = server_socket.accept()
+        print(f"Client connected from {addr}")
+
+        # Receive the number from the client
+        data = client_socket.recv(4)
+        number = struct.unpack('!I', data)[0]
+
+        # Calculate factorial
+        result = factorial(number)
+
+        # Send the result back to the client
+        client_socket.sendall(struct.pack('!I', result))
+
+        print(f"Factorial sent to the client: {result}")
+
+        # Close the connection with the client
+        client_socket.close()
+
+if __name__ == "__main__":
+    main()
+import socket
+import struct
+
+def main():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect(('127.0.0.1', 12345))
+
+    # Get input from the user
+    number = int(input("Enter a number to calculate factorial: "))
+
+    # Send the number to the server
+    client_socket.sendall(struct.pack('!I', number))
+
+    # Receive the result from the server
+    data = client_socket.recv(4)
+    result = struct.unpack('!I', data)[0]
+
+    print(f"Factorial of {number} is: {result}")
+
+    # Close the client socket
+    client_socket.close()
+
+if __name__ == "__main__":
+    main()
