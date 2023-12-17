@@ -1,0 +1,402 @@
+Leaky Bucket :
+storage = 0
+no_of_queries = 4
+bucket_size = 10
+input_pkt_size = 4
+output_pkt_size = 1
+for i in range(0, no_of_queries): # space left
+ 
+​size_left = bucket_size - storage
+​if input_pkt_size <= size_left:
+​​storage += input_pkt_size
+​else:
+​​print("Packet loss = ", input_pkt_size)
+ 
+​print(f"Buffer size= {storage} out of bucket size = {bucket_size}")
+​storage -= output_pkt_size
+
+Token Bucket :
+
+import time
+ 
+class TokenBucket:
+   def _init_(self, capacity, rate):
+       self.capacity = capacity
+       self.rate = rate
+       self.tokens = 0
+       self.last_time = time.time()
+ 
+   def add_tokens(self):
+       current_time = time.time()
+       elapsed_time = current_time - self.last_time
+       self.tokens = min(self.capacity, self.tokens + elapsed_time * self.rate)
+       self.last_time = current_time
+ 
+   def transmit(self, units):
+       self.add_tokens()
+       if units <= self.tokens:
+           self.tokens -= units
+           print(f"Transmitted {units} units. Tokens remaining: {self.tokens}")
+       else:
+           print(f"Insufficient tokens! Unable to transmit {units} units.")
+ 
+# Example Usage:
+token_bucket = TokenBucket(capacity=10, rate=1)
+ 
+# Simulate packet transmission over time
+for _ in range(15):
+   token_bucket.transmit(1)
+   time.sleep(0.5)
+
+dijkstra
+import sys
+class Graph():
+ 
+​def _init_(self, vertices):
+​​self.V = vertices
+​​self.graph = [[0 for column in range(vertices)]
+​​​​​for row in range(vertices)]
+ 
+​def printSolution(self, dist):
+​​print("Vertex \tDistance from Source")
+​​for node in range(self.V):
+​​​print(node, "\t", dist[node])
+​def minDistance(self, dist, sptSet):
+ 
+​​min = sys.maxsize
+​​for u in range(self.V):
+​​​if dist[u] < min and sptSet[u] == False:
+​​​​min = dist[u]
+​​​​min_index = u
+ 
+​​return min_index
+ 
+​def dijkstra(self, src):
+ 
+​​dist = [sys.maxsize] * self.V
+​​dist[src] = 0
+​​sptSet = [False] * self.V
+ 
+​​for cout in range(self.V):
+​​​x = self.minDistance(dist, sptSet)
+​​​sptSet[x] = True
+​​​for y in range(self.V):
+​​​​if self.graph[x][y] > 0 and sptSet[y] == False and \
+​​​​​​dist[y] > dist[x] + self.graph[x][y]:
+​​​​​dist[y] = dist[x] + self.graph[x][y]
+ 
+​​self.printSolution(dist)
+ 
+ 
+if _name_ == "_main_":
+​g = Graph(9)
+​g.graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
+​​​[4, 0, 8, 0, 0, 0, 0, 11, 0],
+​​​[0, 8, 0, 7, 0, 4, 0, 0, 2],
+​​​[0, 0, 7, 0, 9, 14, 0, 0, 0],
+​​​[0, 0, 0, 9, 0, 10, 0, 0, 0],
+​​​[0, 0, 4, 14, 10, 0, 2, 0, 0],
+​​​[0, 0, 0, 0, 0, 2, 0, 1, 6],
+​​​[8, 11, 0, 0, 0, 0, 1, 0, 7],
+​​​[0, 0, 2, 0, 0, 0, 6, 7, 0]]
+​g.dijkstra(0)
+ 
+Output:
+Vertex      Distance from Source 
+0                 0
+1                 4
+2                 12
+3                 19
+4                 21
+5                 11
+6                 9
+7                 8
+8                 14
+
+Link state routing
+import heapq
+
+class Graph:
+    def _init_(self):
+        self.nodes = set()
+        self.edges = {}
+
+    def add_node(self, value):
+        self.nodes.add(value)
+        self.edges[value] = []
+
+    def add_edge(self, from_node, to_node, weight):
+        self.edges[from_node].append((to_node, weight))
+        self.edges[to_node].append((from_node, weight))
+
+def dijkstra(graph, start):
+    visited = {node: False for node in graph.nodes}
+    distances = {node: float('infinity') for node in graph.nodes}
+    distances[start] = 0
+    priority_queue = [(0, start)]
+
+    while priority_queue:
+        current_distance, current_node = heapq.heappop(priority_queue)
+
+        if visited[current_node]:
+            continue
+
+        visited[current_node] = True
+
+        for neighbor, weight in graph.edges[current_node]:
+            distance = current_distance + weight
+
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                heapq.heappush(priority_queue, (distance, neighbor))
+
+    return distances
+
+# Example usage:
+if _name_ == "_main_":
+    network = Graph()
+
+    # Add nodes
+    network.add_node("A")
+    network.add_node("B")
+    network.add_node("C")
+    network.add_node("D")
+
+    # Add edges with weights
+    network.add_edge("A", "B", 1)
+    network.add_edge("B", "C", 2)
+    network.add_edge("C", "D", 1)
+    network.add_edge("A", "D", 3)
+
+    # Calculate distances from node "A"
+    distances_from_A = dijkstra(network, "A")
+
+    print("Shortest distances from node A:")
+    for node, distance in distances_from_A.items():
+        print(f"To {node}: {distance}")
+#include <stdio.h>
+#include <stdbool.h>
+#include <limits.h>
+
+#define MAX_NODES 100
+
+// Structure to represent a graph node
+typedef struct {
+    int node;
+    int weight;
+} Edge;
+
+// Structure to represent a graph
+typedef struct {
+    int nodes[MAX_NODES];
+    Edge edges[MAX_NODES][MAX_NODES];
+    int num_nodes;
+    int num_edges[MAX_NODES];
+} Graph;
+
+// Function to add an edge to the graph
+void addEdge(Graph* graph, int from, int to, int weight) {
+    graph->edges[from][graph->num_edges[from]].node = to;
+    graph->edges[from][graph->num_edges[from]].weight = weight;
+    graph->num_edges[from]++;
+
+    graph->edges[to][graph->num_edges[to]].node = from;
+    graph->edges[to][graph->num_edges[to]].weight = weight;
+    graph->num_edges[to]++;
+}
+
+// Function to find the node with the minimum distance value
+int minDistance(int dist[], bool sptSet[], int num_nodes) {
+    int min = INT_MAX, min_index;
+
+    for (int v = 0; v < num_nodes; v++) {
+        if (sptSet[v] == false && dist[v] < min) {
+            min = dist[v];
+            min_index = v;
+        }
+    }
+
+    return min_index;
+}
+
+// Function to print the shortest distances from the source node
+void printSolution(int dist[], int num_nodes) {
+    printf("Shortest distances from source node:\n");
+    for (int i = 0; i < num_nodes; i++) {
+        printf("To node %d: %d\n", i, dist[i]);
+    }
+}
+
+// Function to perform Dijkstra's algorithm for shortest paths
+void dijkstra(Graph* graph, int src) {
+    int dist[MAX_NODES];  // The output array dist[i] holds the shortest distance from src to i
+    bool sptSet[MAX_NODES];  // sptSet[i] is true if the node i is included in the shortest path tree
+
+    // Initialize all distances as INFINITE and sptSet[] as false
+    for (int i = 0; i < graph->num_nodes; i++) {
+        dist[i] = INT_MAX;
+        sptSet[i] = false;
+    }
+
+    // Distance from the source node to itself is always 0
+    dist[src] = 0;
+
+    // Find the shortest path for all nodes
+    for (int count = 0; count < graph->num_nodes - 1; count++) {
+        // Pick the minimum distance node from the set of nodes not yet processed
+        int u = minDistance(dist, sptSet, graph->num_nodes);
+
+        // Mark the picked node as processed
+        sptSet[u] = true;
+
+        // Update dist value of the adjacent nodes of the picked node
+        for (int v = 0; v < graph->num_edges[u]; v++) {
+            int neighbor = graph->edges[u][v].node;
+            int weight = graph->edges[u][v].weight;
+
+            if (!sptSet[neighbor] && dist[u] != INT_MAX && dist[u] + weight < dist[neighbor]) {
+                dist[neighbor] = dist[u] + weight;
+            }
+        }
+    }
+
+    // Print the calculated distances
+    printSolution(dist, graph->num_nodes);
+}
+
+int main() {
+    Graph network;
+    network.num_nodes = 4;
+
+    // Add edges with weights
+    addEdge(&network, 0, 1, 1);
+    addEdge(&network, 1, 2, 2);
+    addEdge(&network, 2, 3, 1);
+    addEdge(&network, 0, 3, 3);
+
+    // Choose the source node
+    int sourceNode = 0;
+
+    // Perform Dijkstra's algorithm
+    dijkstra(&network, sourceNode);
+
+    return 0;
+}
+Distance vector routing
+class DistanceVector:
+    def _init_(self, num_nodes, source_node):
+        self.num_nodes = num_nodes
+        self.source_node = source_node
+        self.cost = [float('inf')] * num_nodes
+        self.via = [-1] * num_nodes
+
+    def initialize(self):
+        self.cost[self.source_node] = 0
+
+    def distance_vector(self, graph):
+        for i in range(self.num_nodes):
+            self.cost[i] = graph[self.source_node][i]
+            self.via[i] = self.source_node
+
+        for k in range(self.num_nodes):
+            for i in range(self.num_nodes):
+                for j in range(self.num_nodes):
+                    if self.cost[i] > graph[i][k] + self.cost[k]:
+                        self.cost[i] = graph[i][k] + self.cost[k]
+                        self.via[i] = k
+
+    def print_routing_table(self):
+        print("Routing Table:")
+        print("Destination\tCost\tNext Hop")
+        for i in range(self.num_nodes):
+            print(f"{i}\t\t{self.cost[i]}\t{self.via[i]}")
+
+if _name_ == "_main_":
+    num_nodes = 4
+    graph = [
+        [0, 1, float('inf'), 3],
+        [1, 0, 2, float('inf')],
+        [float('inf'), 2, 0, 1],
+        [3, float('inf'), 1, 0]
+    ]
+
+    source_node = 0
+
+    dv = DistanceVector(num_nodes, source_node)
+    dv.initialize()
+    dv.distance_vector(graph)
+
+    dv.print_routing_table()
+
+#include <stdio.h>
+#include <stdbool.h>
+
+#define INFINITY 9999
+#define MAX_NODES 10
+
+typedef struct {
+    int cost[MAX_NODES];
+    int via[MAX_NODES];
+} DistanceVector;
+
+// Function to initialize distance vector
+void initialize(DistanceVector *dv, int numNodes, int sourceNode) {
+    for (int i = 0; i < numNodes; i++) {
+        dv->cost[i] = INFINITY;
+        dv->via[i] = -1;
+    }
+    dv->cost[sourceNode] = 0;
+}
+
+// Function to perform distance vector routing
+void distanceVector(DistanceVector *dv, int numNodes, int graph[MAX_NODES][MAX_NODES], int sourceNode) {
+    for (int i = 0; i < numNodes; i++) {
+        dv->cost[i] = graph[sourceNode][i];
+        dv->via[i] = sourceNode;
+    }
+
+    for (int k = 0; k < numNodes; k++) {
+        for (int i = 0; i < numNodes; i++) {
+            for (int j = 0; j < numNodes; j++) {
+                if (dv->cost[i] > graph[i][k] + dv->cost[k]) {
+                    dv->cost[i] = graph[i][k] + dv->cost[k];
+                    dv->via[i] = k;
+                }
+            }
+        }
+    }
+}
+
+// Function to print the routing table
+void printRoutingTable(DistanceVector *dv, int numNodes) {
+    printf("Routing Table:\n");
+    printf("Destination\tCost\tNext Hop\n");
+    for (int i = 0; i < numNodes; i++) {
+        printf("%d\t\t%d\t%d\n", i, dv->cost[i], dv->via[i]);
+    }
+}
+
+int main() {
+    int numNodes = 4;
+    int graph[MAX_NODES][MAX_NODES] = {
+        {0, 1, INFINITY, 3},
+        {1, 0, 2, INFINITY},
+        {INFINITY, 2, 0, 1},
+        {3, INFINITY, 1, 0}
+    };
+
+    int sourceNode = 0;
+
+    DistanceVector dv;
+    initialize(&dv, numNodes, sourceNode);
+
+    // Perform distance vector routing
+    distanceVector(&dv, numNodes, graph, sourceNode);
+
+    // Print the routing table
+    printRoutingTable(&dv, numNodes);
+
+    return 0;
+}
+
+
