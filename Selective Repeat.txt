@@ -1,0 +1,123 @@
+Selective Repeat
+
+sender.c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#define PORT 12345
+#define WINDOW_SIZE 4
+
+typedef struct {
+    int seq_num;
+    char data[256];
+} Frame;
+
+int main() {
+    int sockfd;
+    struct sockaddr_in server_addr;
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd == -1) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+
+    // Sender doesn't bind since it's UDP
+
+    int total_frames = 10; // Total number of frames to send
+    int base = 0;
+    int next_seq_num = 0;
+
+    while (base < total_frames) {
+        for (int i = base; i < next_seq_num && i < base + WINDOW_SIZE && i < total_frames; ++i) {
+            Frame frame;
+            frame.seq_num = i;
+            sprintf(frame.data, "Frame %d data", i);
+
+            sendto(sockfd, &frame, sizeof(Frame), 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
+            printf("Sent Frame %d\n", i);
+        }
+
+        // Receive acknowledgments
+        for (int i = base; i < next_seq_num && i < base + WINDOW_SIZE && i < total_frames; ++i) {
+            Frame ack;
+            recvfrom(sockfd, &ack, sizeof(Frame), 0, NULL, NULL);
+            printf("Received ACK for Frame %d\n", ack.seq_num);
+
+            base = ack.seq_num + 1;
+        }
+    }
+
+    close(sockfd);
+
+    return 0;
+}
+
+
+receiver.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#define PORT 12345
+#define WINDOW_SIZE 4
+
+typedef struct {
+    int seq_num;
+    char data[256];
+} Frame;
+
+int main() {
+    int sockfd;
+    struct sockaddr_in server_addr, client_addr;
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd == -1) {
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(sockfd, (const struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
+        perror("Bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    int total_frames = 10; // Total number of frames expected
+    int base = 0;
+
+    while (base < total_frames) {
+        for (int i = 0; i < WINDOW_SIZE; ++i) {
+            Frame frame;
+            recvfrom(sockfd, &frame, sizeof(Frame), 0, (struct sockaddr*)&client_addr, NULL);
+            printf("Received Frame %d: %s\n", frame.seq_num, frame.data);
+
+            // Simulate packet loss by not sending ACK for some frames
+            if (rand() % 2 == 0) {
+                Frame ack;
+                ack.seq_num = frame.seq_num;
+                sendto(sockfd, &ack, sizeof(Frame), 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
+                printf("Sent ACK for Frame %d\n", ack.seq_num);
+            }
+        }
+    }
+
+    close(sockfd);
+
+    return 0;
+}
