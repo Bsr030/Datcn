@@ -1,0 +1,463 @@
+Factorial Socket Programming (connection oriented)
+ 
+-------------------------------------------------------------------------
+
+Server.py 
+
+import socket
+import sys
+import math
+
+def factorial(n):
+    if n == 0:
+        return 1
+    return n * factorial(n-1)
+
+def handle_client(client_socket):
+    data = client_socket.recv(1024)
+    if not data:
+        return
+
+    try:
+        number = int(data.decode('utf-8'))
+        result = factorial(number)
+        response = str(result).encode('utf-8')
+        client_socket.send(response)
+    except ValueError:
+        print("Invalid input from client. Please send a valid integer.")
+
+    client_socket.close()
+
+def run_server():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    host = "127.0.0.1"
+    port = 8080
+
+    server_socket.bind((host, port))
+    server_socket.listen(5)
+
+    print(f"Server listening on {host}:{port}")
+
+    while True:
+        client_socket, client_address = server_socket.accept()
+        print(f"Accepted connection from {client_address}")
+
+        handle_client(client_socket)
+
+if __name__ == "__main__":
+    run_server()
+
+
+Client.py
+
+import socket
+
+def run_client():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    host = "127.0.0.1"
+    port = 8080
+
+    client_socket.connect((host, port))
+
+    number = input("Enter a number: ")
+    client_socket.send(number.encode('utf-8'))
+
+    result = client_socket.recv(1024).decode('utf-8')
+    print(f"Factorial of {number} is: {result}")
+
+    client_socket.close()
+
+if __name__ == "__main__":
+    run_client()
+
+
+Execution : Run server in a terminal and client in another terminal 
+
+
+-----------------------------------------------------------------------------------------
+
+
+Dijkstra Algorithm
+
+#include <stdio.h>
+#include <limits.h>
+
+#define V 6 
+int minDistance(int dist[], int sptSet[]) {
+    int min = INT_MAX, min_index;
+    for (int v = 0; v < V; v++) {
+        if (sptSet[v] == 0 && dist[v] <= min) {
+            min = dist[v];
+            min_index = v;
+        }
+    }
+    return min_index;
+}
+
+
+void printSolution(int dist[]) {
+    printf("Vertex \t Distance from Source\n");
+    for (int i = 0; i < V; i++)
+        printf("%d \t %d\n", i, dist[i]);
+}
+
+
+void dijkstra(int graph[V][V], int src) {
+    int dist[V]; 
+    int sptSet[V];
+    for (int i = 0; i < V; i++) {
+        dist[i] = INT_MAX;
+        sptSet[i] = 0;
+    }
+    dist[src] = 0;
+    for (int count = 0; count < V - 1; count++) {
+        int u = minDistance(dist, sptSet);
+        sptSet[u] = 1;
+        for (int v = 0; v < V; v++) {
+            if (!sptSet[v] && graph[u][v] && dist[u] != INT_MAX && dist[u] + graph[u][v] < dist[v]) {
+                dist[v] = dist[u] + graph[u][v];
+            }
+        }
+    }
+    printSolution(dist);
+}
+
+int main() {
+    int graph[V][V] = {{0, 4, 0, 0, 0, 0},
+                       {4, 0, 8, 0, 0, 0},
+                       {0, 8, 0, 7, 0, 4},
+                       {0, 0, 7, 0, 9, 14},
+                       {0, 0, 0, 9, 0, 10},
+                       {0, 0, 4, 14, 10, 0}};
+    dijkstra(graph, 0);
+    return 0;
+}
+
+--------------------------------------------------------------------------------------------------
+
+Prime Number using Connectionless (UDP)
+
+----------------------------------------------
+
+Server.py
+
+import socket
+
+def is_prime(number):
+    if number < 2:
+        return False
+    for i in range(2, int(number**0.5) + 1):
+        if number % i == 0:
+            return False
+    return True
+
+def run_udp_server():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    host = "127.0.0.1"
+    port = 8080
+
+    server_socket.bind((host, port))
+
+    print(f"UDP Server listening on {host}:{port}")
+
+    while True:
+        data, client_address = server_socket.recvfrom(1024)
+        if not data:
+            continue
+
+        try:
+            number = int(data.decode('utf-8'))
+            result = "Prime" if is_prime(number) else "Not Prime"
+            server_socket.sendto(result.encode('utf-8'), client_address)
+        except ValueError:
+            print("Invalid input from client. Please send a valid integer.")
+
+if __name__ == "__main__":
+    run_udp_server()
+
+
+Client.py
+
+import socket
+
+def run_udp_client():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    host = "127.0.0.1"
+    port = 8080
+
+    number = input("Enter a number: ")
+    client_socket.sendto(number.encode('utf-8'), (host, port))
+
+    result, server_address = client_socket.recvfrom(1024)
+    print(f"The result for number {number} is: {result.decode('utf-8')}")
+
+    client_socket.close()
+
+if __name__ == "__main__":
+    run_udp_client()
+
+------------------------------------------------------------------------
+
+Link State Router
+
+
+-----------------------------------------
+
+void linkStateRouting(Network* network, int source) {
+    printf("\nRunning Link State Routing Algorithm from Router %d\n", source);
+
+    // Assume broadcasting link state information to all routers
+    for (int i = 0; i < network->numNodes; i++) {
+        if (i != source) {
+            printf("Router %d broadcasts its link state information to Router %d\n", source, i);
+            updateLinkState(&(network->nodes[i]), source, network->nodes[source].cost[i]);
+        }
+    }
+
+    // Calculate shortest paths using Dijkstra's algorithm (simplified for this example)
+    // In a real-world scenario, you would use a priority queue for efficiency.
+    int dist[MAX_NODES];
+    for (int i = 0; i < network->numNodes; i++) {
+        dist[i] = network->nodes[source].cost[i];
+    }
+
+    for (int k = 0; k < network->numNodes; k++) {
+        for (int i = 0; i < network->numNodes; i++) {
+            for (int j = 0; j < network->numNodes; j++) {
+                if (dist[i] != INT_MAX && (dist[i] + network->nodes[i].cost[j]) < dist[j]) {
+                    dist[j] = dist[i] + network->nodes[i].cost[j];
+                }
+            }
+        }
+    }
+
+    // Display the calculated shortest paths
+    for (int i = 0; i < network->numNodes; i++) {
+        printf("Shortest path from Router %d to Router %d: %d\n", source, i, dist[i]);
+    }
+}
+
+int main() {
+    Network network;
+    initializeNetwork(&network, 5);
+
+    // Set initial link state information
+    updateLinkState(&(network.nodes[0]), 1, 2);
+    updateLinkState(&(network.nodes[0]), 2, 5);
+    updateLinkState(&(network.nodes[0]), 3, 1);
+    updateLinkState(&(network.nodes[1]), 0, 2);
+    updateLinkState(&(network.nodes[1]), 2, 3);
+    updateLinkState(&(network.nodes[1]), 4, 7);
+    updateLinkState(&(network.nodes[2]), 0, 5);
+    updateLinkState(&(network.nodes[2]), 1, 3);
+    updateLinkState(&(network.nodes[2]), 3, 4);
+    updateLinkState(&(network.nodes[2]), 4, 2);
+
+    updateLinkState(&(network.nodes[3]), 0, 1);
+    updateLinkState(&(network.nodes[3]), 2, 4);
+    updateLinkState(&(network.nodes[3]), 4, 3);
+
+    updateLinkState(&(network.nodes[4]), 1, 7);
+    updateLinkState(&(network.nodes[4]), 2, 2);
+    updateLinkState(&(network.nodes[4]), 3, 3);
+
+    printNetwork(&network);
+
+    // Run Link State Routing Algorithm from Router 0
+    linkStateRouting(&network, 0);
+
+    return 0;
+}
+
+
+
+-------------------------------------------------------------------------
+
+
+SwapCase in connnection oriented
+
+--------------------------------------------------------------------------
+
+Server.py
+
+import socket
+
+def convert_case(data):
+    return data.swapcase()
+
+def handle_client(client_socket):
+    data = client_socket.recv(1024)
+    if not data:
+        return
+
+    try:
+        input_string = data.decode('utf-8')
+        result = convert_case(input_string)
+        response = result.encode('utf-8')
+        client_socket.send(response)
+    except UnicodeDecodeError:
+        print("Invalid input from client. Please send a valid string.")
+
+    client_socket.close()
+
+def run_tcp_server():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    host = "127.0.0.1"
+    port = 8080
+
+    server_socket.bind((host, port))
+    server_socket.listen(5)
+
+    print(f"TCP Server listening on {host}:{port}")
+
+    while True:
+        client_socket, client_address = server_socket.accept()
+        print(f"Accepted connection from {client_address}")
+
+        handle_client(client_socket)
+
+if __name__ == "__main__":
+    run_tcp_server()
+
+Client.py
+
+import socket
+
+def run_tcp_client():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    host = "127.0.0.1"
+    port = 8080
+
+    client_socket.connect((host, port))
+
+    input_string = input("Enter a string: ")
+    client_socket.send(input_string.encode('utf-8'))
+
+    result = client_socket.recv(1024).decode('utf-8')
+    print(f"The converted string is: {result}")
+
+    client_socket.close()
+
+if __name__ == "__main__":
+    run_tcp_client()
+
+
+--------------------------------------------------------------------------
+
+Leaky Bucket Algorithm
+
+---------------------------------------------------------------------------
+
+---------------------------------------------------------------------------
+Factorial Socket Programming (connectionless)
+
+-----------------------------------------------------------
+Server.py
+
+import socket
+import math
+
+def factorial(n):
+    if n == 0:
+        return 1
+    return n * factorial(n-1)
+
+def run_udp_server():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    host = "127.0.0.1"
+    port = 8080
+
+    server_socket.bind((host, port))
+
+    print(f"UDP Server listening on {host}:{port}")
+
+    while True:
+        data, client_address = server_socket.recvfrom(1024)
+        if not data:
+            continue
+
+        try:
+            number = int(data.decode('utf-8'))
+            result = factorial(number)
+            server_socket.sendto(str(result).encode('utf-8'), client_address)
+        except ValueError:
+            print("Invalid input from client. Please send a valid integer.")
+
+if __name__ == "__main__":
+    run_udp_server()
+
+
+Client.py
+
+
+import socket
+
+def run_udp_client():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    host = "127.0.0.1"
+    port = 8080
+
+    number = input("Enter a number: ")
+    client_socket.sendto(number.encode('utf-8'), (host, port))
+
+    result, server_address = client_socket.recvfrom(1024)
+    print(f"The factorial of {number} is: {result.decode('utf-8')}")
+
+    client_socket.close()
+
+if __name__ == "__main__":
+    run_udp_client()
+
+------------------------------------------------------------------
+
+Token Bucket in C
+-------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define BUCKET_CAPACITY 10  // Maximum capacity of the token bucket
+#define TOKEN_RATE 3       // Rate at which tokens are added to the bucket
+
+int main() {
+    int token_bucket = 0;  // The current number of tokens in the bucket
+
+    while (1) {
+        // Add tokens to the bucket at the fixed token rate
+        token_bucket += TOKEN_RATE;
+
+        if (token_bucket > BUCKET_CAPACITY) {
+            token_bucket = BUCKET_CAPACITY;  // Cap the number of tokens at the bucket's capacity
+        }
+
+        // Simulate data packets arriving with random sizes (you can replace this with actual data input)
+        int data_packet_size = rand() % 6;  // Random packet size between 0 and 5
+
+        printf("Data packet size: %d, Tokens available: %d\n", data_packet_size, token_bucket);
+
+        if (data_packet_size <= token_bucket) {
+            // There are enough tokens to send the data packet
+            printf("Sending data packet of size %d\n", data_packet_size);
+            token_bucket -= data_packet_size;  // Remove tokens for the sent packet
+        } else {
+            printf("Not enough tokens to send the data packet. Waiting...\n");
+        }
+
+        // Sleep for a while to simulate the passage of time
+        usleep(1000000);  // Sleep for 1 second
+    }
+
+    return 0;
+}
+----------------------------------------------------------------
+
+
+
